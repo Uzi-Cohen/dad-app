@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
     const task = await client.imageToVideo.create({
       model: "gen4",
-      promptText: prompt ?? "Professional high-end fashion video with a real fashion model wearing the dress, walking on a luxury runway or elegant urban setting, cinematic lighting, photorealistic, 4K quality, smooth camera movement",
+      promptText: prompt ?? "Professional fashion model wearing the EXACT dress shown in the image - preserve all original design details, colors, patterns, and fabric textures without any modifications. Smooth camera movement, luxury runway or elegant setting, cinematic professional lighting, photorealistic 4K quality. DO NOT change or alter the dress design in any way.",
       promptImage: [
         { uri: image, position: "first" }
       ],
