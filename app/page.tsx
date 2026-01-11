@@ -92,7 +92,7 @@ export default function VideoStudioPage() {
       const selectedTemplateData = templates.find(t => t.id === selectedTemplate)
       const finalPrompt = prompt || selectedTemplateData?.prompt || ''
 
-      const response = await fetch('/api/generate-video', {
+      const response = await fetch('/api/runway/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,12 +109,9 @@ export default function VideoStudioPage() {
         return
       }
 
-      // Poll for video completion
-      if (data.jobId) {
-        pollJobStatus(data.jobId)
-      } else if (data.videoUrl) {
-        setVideoUrl(data.videoUrl)
-        setIsGenerating(false)
+      // Start polling for completion
+      if (data.taskId) {
+        pollJobStatus(data.taskId)
       }
     } catch (error) {
       console.error('Generation failed:', error)
@@ -142,41 +139,50 @@ export default function VideoStudioPage() {
     localStorage.setItem('generated-videos', JSON.stringify(videos))
   }
 
-  const pollJobStatus = async (jobId: string) => {
+  const pollJobStatus = async (taskId: string) => {
     const startTime = Date.now()
 
     const checkStatus = async () => {
       try {
-        const response = await fetch(`/api/jobs/${jobId}`)
-        const data = await response.json()
+        const response = await fetch('/api/runway/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskId }),
+        })
 
-        // Update progress
-        const currentProgress = data.job?.progress || 0
+        const task = await response.json()
+
+        console.log('Task update:', task.status, task.progress)
+
+        // Update progress (Runway returns progress as 0-100)
+        const currentProgress = task.progress || 0
         setProgress(currentProgress)
 
         // Calculate estimated time remaining
         const elapsed = (Date.now() - startTime) / 1000 // seconds
-        if (currentProgress > 0) {
+        if (currentProgress > 0 && currentProgress < 100) {
           const totalEstimated = (elapsed / currentProgress) * 100
           const remaining = Math.max(0, totalEstimated - elapsed)
           setEstimatedTime(Math.ceil(remaining))
         }
 
-        if (data.job?.status === 'COMPLETED' && data.job?.outputUrl) {
-          setVideoUrl(data.job.outputUrl)
+        // Check task status (Runway statuses: PENDING, RUNNING, SUCCEEDED, FAILED, CANCELLED)
+        if (task.status === 'SUCCEEDED' && task.output && task.output.length > 0) {
+          const videoUrl = task.output[0]
+          setVideoUrl(videoUrl)
           setIsGenerating(false)
           setProgress(100)
           setEstimatedTime(0)
 
           // Save to gallery
-          saveVideoToGallery(data.job.outputUrl, jobId)
-        } else if (data.job?.status === 'FAILED') {
-          alert('Video generation failed: ' + (data.job?.error || 'Unknown error'))
+          saveVideoToGallery(videoUrl, taskId)
+        } else if (task.status === 'FAILED') {
+          alert('Video generation failed: ' + (task.failure || 'Unknown error'))
           setIsGenerating(false)
           setProgress(0)
         } else {
-          // Still processing, check again in 2 seconds
-          setTimeout(checkStatus, 2000)
+          // Still processing (PENDING or RUNNING), check again in 5 seconds
+          setTimeout(checkStatus, 5000)
         }
       } catch (error) {
         console.error('Status check failed:', error)
