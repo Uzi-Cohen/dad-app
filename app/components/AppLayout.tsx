@@ -3,32 +3,29 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: '📊' },
-    { name: 'Products', href: '/products', icon: '👗' },
-    { name: 'Jobs', href: '/jobs', icon: '⚙️' },
-    { name: 'Brand Settings', href: '/settings', icon: '🎨' },
+    { name: 'Video Studio', href: '/', icon: '🎬' },
+    { name: 'Image Generator', href: '/generate-image', icon: '🖼️' },
+    { name: 'Dress Designer', href: '/design', icon: '✏️' },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">🎬</span>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  Fashion Content Studio
-                </h1>
-                <p className="text-sm text-gray-500">
-                  Create stunning promotional videos
-                </p>
-              </div>
+          <div className="flex items-center gap-3 py-4">
+            <span className="text-3xl">👗</span>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Fashion AI Studio
+              </h1>
+              <p className="text-sm text-gray-500">
+                Design, generate, and transform with AI
+              </p>
             </div>
           </div>
         </div>
@@ -53,7 +50,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     }
                   `}
                 >
-                  <span>{item.icon}</span>
+                  <span className="text-xl">{item.icon}</span>
                   <span>{item.name}</span>
                 </Link>
               )
