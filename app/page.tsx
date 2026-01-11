@@ -106,28 +106,28 @@ export default function VideoStudioPage() {
     {
       id: 'elegant' as VideoTemplate,
       nameKey: 'elegantShowcase' as keyof typeof translations.en,
-      prompt: 'Professional fashion model wearing the EXACT dress from the image - preserve all original colors, patterns, and design details. Walking elegantly on a luxury runway with professional studio lighting, smooth cinematic camera movements, photorealistic 4K quality, high-end fashion show atmosphere. DO NOT alter the dress design.',
+      prompt: 'CRITICAL REQUIREMENT: The dress/outfit must remain 100% IDENTICAL to the reference image - do NOT change colors, do NOT change patterns, do NOT change fabric, do NOT change cut, do NOT change style, do NOT add or remove any design elements. ZERO modifications allowed to the clothing. Professional fashion model walking elegantly on a luxury runway with professional studio lighting, smooth cinematic camera movements, photorealistic 4K quality, high-end fashion show atmosphere. Only animate the model and camera - the dress stays exactly as shown in the image.',
       icon: '✨',
       color: 'from-purple-500 to-violet-600',
     },
     {
       id: 'dynamic' as VideoTemplate,
       nameKey: 'dynamicEnergy' as keyof typeof translations.en,
-      prompt: 'Real fashion model wearing the EXACT dress from the image - maintain all original design details, colors, and patterns. Urban city setting, walking confidently through modern architecture, dynamic camera movement, vibrant natural lighting, photorealistic 4K quality. Preserve the dress exactly as shown.',
+      prompt: 'CRITICAL REQUIREMENT: The dress/outfit must remain 100% IDENTICAL to the reference image - do NOT change colors, do NOT change patterns, do NOT change fabric, do NOT change cut, do NOT change style, do NOT add or remove any design elements. ZERO modifications allowed to the clothing. Real fashion model in urban city setting, walking confidently through modern architecture, dynamic camera movement, vibrant natural lighting, photorealistic 4K quality. Only animate the model and camera - the dress stays exactly as shown in the image.',
       icon: '⚡',
       color: 'from-blue-500 to-cyan-600',
     },
     {
       id: 'minimal' as VideoTemplate,
       nameKey: 'minimalChic' as keyof typeof translations.en,
-      prompt: 'Fashion model wearing the EXACT dress from the image - keep all original design elements, colors, and fabric textures unchanged. Minimalist white studio with natural window lighting, slow graceful movements, photorealistic quality. DO NOT modify the dress design.',
+      prompt: 'CRITICAL REQUIREMENT: The dress/outfit must remain 100% IDENTICAL to the reference image - do NOT change colors, do NOT change patterns, do NOT change fabric, do NOT change cut, do NOT change style, do NOT add or remove any design elements. ZERO modifications allowed to the clothing. Fashion model in minimalist white studio with natural window lighting, slow graceful movements, photorealistic quality. Only animate the model and camera - the dress stays exactly as shown in the image.',
       icon: '🤍',
       color: 'from-gray-400 to-slate-600',
     },
     {
       id: 'luxury' as VideoTemplate,
       nameKey: 'luxuryPremium' as keyof typeof translations.en,
-      prompt: 'High-fashion model wearing the EXACT dress from the image - preserve all original design details, patterns, and colors perfectly. Opulent luxury boutique setting, dramatic professional lighting with golden hour ambiance, cinematic camera work, photorealistic 4K quality. Keep dress design identical to original.',
+      prompt: 'CRITICAL REQUIREMENT: The dress/outfit must remain 100% IDENTICAL to the reference image - do NOT change colors, do NOT change patterns, do NOT change fabric, do NOT change cut, do NOT change style, do NOT add or remove any design elements. ZERO modifications allowed to the clothing. High-fashion model in opulent luxury boutique setting, dramatic professional lighting with golden hour ambiance, cinematic camera work, photorealistic 4K quality. Only animate the model and camera - the dress stays exactly as shown in the image.',
       icon: '💎',
       color: 'from-pink-500 to-rose-600',
     },
@@ -329,7 +329,7 @@ export default function VideoStudioPage() {
           const compositeForPrompt = await createCompositeImage(modelReference, dressImage)
           // Use composite but emphasize model wearing dress from right side
           imageToSend = compositeForPrompt
-          finalPrompt = `This is the same person shown on the left, now wearing the EXACT dress/outfit shown on the right side. ${finalPrompt} Preserve the model's face, body, and characteristics from the left photo. Copy the dress design perfectly from the right photo - same colors, patterns, cut, style, and details. Animate this person wearing that exact dress.`
+          finalPrompt = `CRITICAL: Person on LEFT wearing the dress/outfit shown on RIGHT. The dress on the RIGHT must be copied EXACTLY onto the person on the LEFT with ZERO changes - same exact colors, same exact patterns, same exact fabric, same exact cut, same exact style. Do NOT modify, enhance, or alter the dress design in ANY way. ${finalPrompt} The person's face and body should match the LEFT photo. The clothing must be 100% identical to the RIGHT photo. Only animate movement - do not redesign the clothing.`
         } catch (error) {
           console.error('Failed to create composite:', error)
           // Fallback: use model photo and describe the dress in text
