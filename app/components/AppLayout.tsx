@@ -8,6 +8,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navigation = [
     { name: 'Video Studio', href: '/', icon: '🎬', gradient: 'from-purple-500 to-pink-500' },
+    { name: 'Gallery', href: '/gallery', icon: '🎞️', gradient: 'from-violet-500 to-purple-500' },
     { name: 'Image Generator', href: '/generate-image', icon: '🖼️', gradient: 'from-blue-500 to-cyan-500' },
     { name: 'Dress Designer', href: '/design', icon: '✏️', gradient: 'from-pink-500 to-rose-500' },
   ]

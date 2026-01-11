@@ -123,6 +123,25 @@ export default function VideoStudioPage() {
     }
   }
 
+  const saveVideoToGallery = (videoUrl: string, jobId: string) => {
+    const saved = localStorage.getItem('generated-videos')
+    const videos = saved ? JSON.parse(saved) : []
+
+    const selectedTemplateData = templates.find(t => t.id === selectedTemplate)
+
+    const newVideo = {
+      id: jobId,
+      videoUrl,
+      thumbnailUrl: uploadedImage || '',
+      createdAt: new Date().toISOString(),
+      template: selectedTemplateData?.name || 'Custom',
+      prompt: prompt || selectedTemplateData?.prompt || '',
+    }
+
+    videos.unshift(newVideo) // Add to beginning
+    localStorage.setItem('generated-videos', JSON.stringify(videos))
+  }
+
   const pollJobStatus = async (jobId: string) => {
     const startTime = Date.now()
 
@@ -148,6 +167,9 @@ export default function VideoStudioPage() {
           setIsGenerating(false)
           setProgress(100)
           setEstimatedTime(0)
+
+          // Save to gallery
+          saveVideoToGallery(data.job.outputUrl, jobId)
         } else if (data.job?.status === 'FAILED') {
           alert('Video generation failed: ' + (data.job?.error || 'Unknown error'))
           setIsGenerating(false)
