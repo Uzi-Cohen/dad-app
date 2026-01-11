@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { AppLayout } from './components/AppLayout'
+import { useLanguage } from './contexts/LanguageContext'
 
 type VideoTemplate = 'elegant' | 'dynamic' | 'minimal' | 'luxury'
 
@@ -86,8 +87,8 @@ export default function VideoStudioPage() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)
   const [estimatedTime, setEstimatedTime] = useState(0)
-  const [language, setLanguage] = useState<'en' | 'ar'>('en')
 
+  const { language, setLanguage } = useLanguage()
   const t = translations[language]
 
   const templates = [
