@@ -9,18 +9,26 @@ const client = new RunwayML({
 
 export async function POST(req: Request) {
   try {
-    const { image, prompt } = await req.json();
+    const { image, modelReference, prompt } = await req.json();
 
     if (!image) {
       return NextResponse.json({ error: "image required" }, { status: 400 });
     }
 
+    // Build prompt images array
+    const promptImages: Array<{ uri: string; position?: string }> = [
+      { uri: image, position: "first" }
+    ];
+
+    // Add model reference as second image if provided
+    if (modelReference) {
+      promptImages.push({ uri: modelReference });
+    }
+
     const task = await client.imageToVideo.create({
       model: "gen4",
       promptText: prompt ?? "Professional fashion model wearing the EXACT dress shown in the image - preserve all original design details, colors, patterns, and fabric textures without any modifications. Smooth camera movement, luxury runway or elegant setting, cinematic professional lighting, photorealistic 4K quality. DO NOT change or alter the dress design in any way.",
-      promptImage: [
-        { uri: image, position: "first" }
-      ],
+      promptImage: promptImages,
       ratio: "1584:672",
       duration: 10,
     });

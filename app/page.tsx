@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AppLayout } from './components/AppLayout'
 import { useLanguage } from './contexts/LanguageContext'
 
@@ -89,9 +89,18 @@ export default function VideoStudioPage() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)
   const [estimatedTime, setEstimatedTime] = useState(0)
+  const [modelReference, setModelReference] = useState<string | null>(null)
 
   const { language, setLanguage } = useLanguage()
   const t = translations[language]
+
+  // Load model reference from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('model-reference')
+    if (saved) {
+      setModelReference(saved)
+    }
+  }, [])
 
   const templates = [
     {
@@ -226,6 +235,24 @@ export default function VideoStudioPage() {
     }
   }
 
+  const handleModelReferenceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const imageData = e.target?.result as string
+        setModelReference(imageData)
+        localStorage.setItem('model-reference', imageData)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const clearModelReference = () => {
+    setModelReference(null)
+    localStorage.removeItem('model-reference')
+  }
+
   const handleGenerateVideo = async () => {
     const selectedImage = uploadedImages.find(img => img.id === selectedImageId)
     if (!selectedImage) return
@@ -237,7 +264,12 @@ export default function VideoStudioPage() {
 
     try {
       const selectedTemplateData = templates.find(t => t.id === selectedTemplate)
-      const finalPrompt = prompt || selectedTemplateData?.prompt || ''
+      let finalPrompt = prompt || selectedTemplateData?.prompt || ''
+
+      // Add model reference instruction if model reference exists
+      if (modelReference) {
+        finalPrompt = `Use the EXACT model/person shown in the reference image. ${finalPrompt}`
+      }
 
       // Use thumbnail for videos, original data for images
       const imageToUse = selectedImage.type === 'video' ? selectedImage.thumbnail! : selectedImage.data
@@ -247,6 +279,7 @@ export default function VideoStudioPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: imageToUse,
+          modelReference: modelReference,
           prompt: finalPrompt,
         }),
       })
@@ -550,6 +583,49 @@ export default function VideoStudioPage() {
                 className="w-full px-4 py-3 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white/5 text-white placeholder-gray-500"
                 rows={3}
               />
+            </div>
+
+            {/* Model Reference */}
+            <div className="mb-4 p-4 border border-blue-500/30 rounded-lg bg-blue-500/5">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">👤</span>
+                <label className="block text-sm font-medium text-blue-300">
+                  {language === 'en' ? 'Model Reference (Optional)' : 'نموذج مرجعي (اختياري)'}
+                </label>
+              </div>
+              <p className="text-xs text-gray-400 mb-3">
+                {language === 'en'
+                  ? 'Upload a photo of your preferred model. AI will use this person in all generated videos for consistency.'
+                  : 'ارفع صورة للموديل المفضل لديك. سيستخدم الذكاء الاصطناعي هذا الشخص في جميع الفيديوهات المُنشأة للحفاظ على الاتساق.'}
+              </p>
+
+              {modelReference ? (
+                <div className="space-y-3">
+                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-blue-500">
+                    <img
+                      src={modelReference}
+                      alt="Model Reference"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <button
+                    onClick={clearModelReference}
+                    className="text-xs text-red-400 hover:text-red-300 font-medium"
+                  >
+                    {language === 'en' ? '✕ Remove Model Reference' : '✕ إزالة النموذج المرجعي'}
+                  </button>
+                </div>
+              ) : (
+                <label className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg cursor-pointer transition-all">
+                  {language === 'en' ? '📸 Upload Model Photo' : '📸 رفع صورة الموديل'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleModelReferenceUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
 
             <button
