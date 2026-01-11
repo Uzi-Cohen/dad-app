@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ProtectedRoute } from '@/app/components/ProtectedRoute'
 import { DashboardLayout } from '@/app/components/DashboardLayout'
 import { apiClient } from '@/lib/api-client'
 
@@ -98,18 +97,18 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <ProtectedRoute>
+      
         <DashboardLayout>
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-600"></div>
           </div>
         </DashboardLayout>
-      </ProtectedRoute>
+      
     )
   }
 
   return (
-    <ProtectedRoute>
+    
       <DashboardLayout>
         <div className="space-y-6">
           {/* Header */}
@@ -314,6 +313,6 @@ export default function SettingsPage() {
           )}
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
+    
   )
 }

@@ -1,18 +1,10 @@
 'use client'
 
-import { useAuth } from '@/app/contexts/AuthContext'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth()
   const pathname = usePathname()
-  const router = useRouter()
-
-  const handleLogout = () => {
-    logout()
-    router.push('/login')
-  }
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: '📊' },
@@ -37,19 +29,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   Create stunning promotional videos
                 </p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-semibold text-gray-900">{user?.name || user?.email}</p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role.toLowerCase()}</p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Logout
-              </button>
             </div>
           </div>
         </div>
