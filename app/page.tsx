@@ -240,6 +240,14 @@ export default function VideoStudioPage() {
     localStorage.setItem('model-reference', value)
   }
 
+  const addCharacteristic = (characteristic: string) => {
+    const current = modelReference || ''
+    const newValue = current.trim()
+      ? `${current.trim()}, ${characteristic}`
+      : characteristic
+    handleModelDescriptionChange(newValue)
+  }
+
   const clearModelReference = () => {
     setModelReference(null)
     localStorage.removeItem('model-reference')
@@ -586,9 +594,102 @@ export default function VideoStudioPage() {
               </div>
               <p className="text-xs text-gray-400 mb-3">
                 {language === 'en'
-                  ? 'Describe your preferred model for consistent videos. Example: "tall female model, athletic build, dark skin tone, long black hair, professional runway posture". Be specific for best results.'
-                  : 'صف الموديل المفضل لديك للحصول على فيديوهات متسقة. مثال: "موديل أنثى طويلة، بنية رياضية، بشرة داكنة، شعر أسود طويل، وضعية احترافية". كن محددًا للحصول على أفضل النتائج.'}
+                  ? 'Click options below to build your model description, or type custom details.'
+                  : 'انقر على الخيارات أدناه لبناء وصف الموديل، أو اكتب تفاصيل مخصصة.'}
               </p>
+
+              {/* Quick Select Options */}
+              <div className="mb-4 space-y-3">
+                {/* Height & Build */}
+                <div>
+                  <label className="text-xs font-semibold text-blue-200 mb-1 block">
+                    {language === 'en' ? 'Height & Build:' : 'الطول والبنية:'}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['tall', 'petite', 'athletic', 'curvy', 'slender', 'plus-size'].map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => addCharacteristic(option)}
+                        className="px-3 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 rounded-full border border-blue-500/30 transition-all hover:scale-105"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Skin Tone */}
+                <div>
+                  <label className="text-xs font-semibold text-blue-200 mb-1 block">
+                    {language === 'en' ? 'Skin Tone:' : 'لون البشرة:'}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['fair skin', 'olive skin', 'dark skin', 'tan complexion', 'porcelain skin', 'bronze skin'].map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => addCharacteristic(option)}
+                        className="px-3 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 rounded-full border border-blue-500/30 transition-all hover:scale-105"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Hair */}
+                <div>
+                  <label className="text-xs font-semibold text-blue-200 mb-1 block">
+                    {language === 'en' ? 'Hair:' : 'الشعر:'}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['long black hair', 'short blonde bob', 'curly brown hair', 'straight dark hair', 'wavy auburn hair', 'shoulder-length hair'].map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => addCharacteristic(option)}
+                        className="px-3 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 rounded-full border border-blue-500/30 transition-all hover:scale-105"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div>
+                  <label className="text-xs font-semibold text-blue-200 mb-1 block">
+                    {language === 'en' ? 'Features:' : 'الملامح:'}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['high cheekbones', 'strong jawline', 'delicate features', 'sharp features', 'soft features', 'expressive eyes'].map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => addCharacteristic(option)}
+                        className="px-3 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 rounded-full border border-blue-500/30 transition-all hover:scale-105"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Posture */}
+                <div>
+                  <label className="text-xs font-semibold text-blue-200 mb-1 block">
+                    {language === 'en' ? 'Posture & Style:' : 'الوضعية والأسلوب:'}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['confident runway walk', 'elegant posture', 'professional demeanor', 'graceful movements', 'powerful stance', 'sophisticated presence'].map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => addCharacteristic(option)}
+                        className="px-3 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 rounded-full border border-blue-500/30 transition-all hover:scale-105"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
               <textarea
                 value={modelReference || ''}
