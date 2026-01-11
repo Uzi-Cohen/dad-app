@@ -235,22 +235,64 @@ export default function VideoStudioPage() {
     }
   }
 
-  const handleModelDescriptionChange = (value: string) => {
-    setModelReference(value)
-    localStorage.setItem('model-reference', value)
-  }
-
-  const addCharacteristic = (characteristic: string) => {
-    const current = modelReference || ''
-    const newValue = current.trim()
-      ? `${current.trim()}, ${characteristic}`
-      : characteristic
-    handleModelDescriptionChange(newValue)
+  const handleModelReferenceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const imageData = e.target?.result as string
+        setModelReference(imageData)
+        localStorage.setItem('model-reference', imageData)
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   const clearModelReference = () => {
     setModelReference(null)
     localStorage.removeItem('model-reference')
+  }
+
+  const createCompositeImage = (modelImage: string, dressImage: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'))
+        return
+      }
+
+      const model = new Image()
+      const dress = new Image()
+      let loadedCount = 0
+
+      const onLoad = () => {
+        loadedCount++
+        if (loadedCount === 2) {
+          // Set canvas size to fit both images side by side
+          const maxHeight = Math.max(model.height, dress.height)
+          canvas.width = model.width + dress.width
+          canvas.height = maxHeight
+
+          // Draw model on left
+          ctx.drawImage(model, 0, 0, model.width, model.height)
+
+          // Draw dress on right
+          ctx.drawImage(dress, model.width, 0, dress.width, dress.height)
+
+          // Convert to base64
+          resolve(canvas.toDataURL('image/jpeg', 0.9))
+        }
+      }
+
+      model.onload = onLoad
+      dress.onload = onLoad
+      model.onerror = reject
+      dress.onerror = reject
+
+      model.src = modelImage
+      dress.src = dressImage
+    })
   }
 
   const handleGenerateVideo = async () => {
@@ -266,19 +308,30 @@ export default function VideoStudioPage() {
       const selectedTemplateData = templates.find(t => t.id === selectedTemplate)
       let finalPrompt = prompt || selectedTemplateData?.prompt || ''
 
-      // Add model description to prompt if provided
-      if (modelReference && modelReference.trim()) {
-        finalPrompt = `Fashion model with these specific characteristics: ${modelReference}. ${finalPrompt}`
-      }
-
       // Use thumbnail for videos, original data for images
-      const imageToUse = selectedImage.type === 'video' ? selectedImage.thumbnail! : selectedImage.data
+      const dressImage = selectedImage.type === 'video' ? selectedImage.thumbnail! : selectedImage.data
+
+      let imageToSend: string
+
+      // If model reference exists, create composite image
+      if (modelReference) {
+        try {
+          imageToSend = await createCompositeImage(modelReference, dressImage)
+          finalPrompt = `The person on the left side of the image wearing the EXACT dress shown on the right side. ${finalPrompt} Keep the model's appearance identical to the left photo and the dress design identical to the right photo.`
+        } catch (error) {
+          console.error('Failed to create composite image:', error)
+          alert('Failed to combine model and dress images. Using dress image only.')
+          imageToSend = dressImage
+        }
+      } else {
+        imageToSend = dressImage
+      }
 
       const response = await fetch('/api/runway/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          image: imageToUse,
+          image: imageToSend,
           prompt: finalPrompt,
         }),
       })
@@ -584,130 +637,46 @@ export default function VideoStudioPage() {
               />
             </div>
 
-            {/* Model Characteristics */}
+            {/* Model Reference Photo */}
             <div className="mb-4 p-4 border border-blue-500/30 rounded-lg bg-blue-500/5">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">👤</span>
                 <label className="block text-sm font-medium text-blue-300">
-                  {language === 'en' ? 'Model Characteristics (Optional)' : 'خصائص الموديل (اختياري)'}
+                  {language === 'en' ? 'Model Reference Photo (Recommended)' : 'صورة الموديل المرجعية (مستحسن)'}
                 </label>
               </div>
               <p className="text-xs text-gray-400 mb-3">
                 {language === 'en'
-                  ? 'Click options below to build your model description, or type custom details.'
-                  : 'انقر على الخيارات أدناه لبناء وصف الموديل، أو اكتب تفاصيل مخصصة.'}
+                  ? 'Upload a clear photo of your preferred model. The AI will combine this person with your dress designs for consistent branding across all videos.'
+                  : 'ارفع صورة واضحة للموديل المفضل لديك. سيقوم الذكاء الاصطناعي بدمج هذا الشخص مع تصميمات الفساتين للحصول على علامة تجارية متسقة عبر جميع الفيديوهات.'}
               </p>
 
-              {/* Quick Select Options */}
-              <div className="mb-4 space-y-3">
-                {/* Height & Build */}
-                <div>
-                  <label className="text-xs font-semibold text-blue-200 mb-1 block">
-                    {language === 'en' ? 'Height & Build:' : 'الطول والبنية:'}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {['tall', 'petite', 'athletic', 'curvy', 'slender', 'plus-size'].map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => addCharacteristic(option)}
-                        className="px-3 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 rounded-full border border-blue-500/30 transition-all hover:scale-105"
-                      >
-                        {option}
-                      </button>
-                    ))}
+              {modelReference ? (
+                <div className="space-y-3">
+                  <div className="relative w-40 h-40 rounded-lg overflow-hidden border-2 border-blue-500">
+                    <img
+                      src={modelReference}
+                      alt="Model Reference"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
+                  <button
+                    onClick={clearModelReference}
+                    className="text-xs text-red-400 hover:text-red-300 font-medium"
+                  >
+                    {language === 'en' ? '✕ Remove Model Photo' : '✕ إزالة صورة الموديل'}
+                  </button>
                 </div>
-
-                {/* Skin Tone */}
-                <div>
-                  <label className="text-xs font-semibold text-blue-200 mb-1 block">
-                    {language === 'en' ? 'Skin Tone:' : 'لون البشرة:'}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {['fair skin', 'olive skin', 'dark skin', 'tan complexion', 'porcelain skin', 'bronze skin'].map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => addCharacteristic(option)}
-                        className="px-3 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 rounded-full border border-blue-500/30 transition-all hover:scale-105"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Hair */}
-                <div>
-                  <label className="text-xs font-semibold text-blue-200 mb-1 block">
-                    {language === 'en' ? 'Hair:' : 'الشعر:'}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {['long black hair', 'short blonde bob', 'curly brown hair', 'straight dark hair', 'wavy auburn hair', 'shoulder-length hair'].map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => addCharacteristic(option)}
-                        className="px-3 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 rounded-full border border-blue-500/30 transition-all hover:scale-105"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Features */}
-                <div>
-                  <label className="text-xs font-semibold text-blue-200 mb-1 block">
-                    {language === 'en' ? 'Features:' : 'الملامح:'}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {['high cheekbones', 'strong jawline', 'delicate features', 'sharp features', 'soft features', 'expressive eyes'].map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => addCharacteristic(option)}
-                        className="px-3 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 rounded-full border border-blue-500/30 transition-all hover:scale-105"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Posture */}
-                <div>
-                  <label className="text-xs font-semibold text-blue-200 mb-1 block">
-                    {language === 'en' ? 'Posture & Style:' : 'الوضعية والأسلوب:'}
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {['confident runway walk', 'elegant posture', 'professional demeanor', 'graceful movements', 'powerful stance', 'sophisticated presence'].map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => addCharacteristic(option)}
-                        className="px-3 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/40 text-blue-200 rounded-full border border-blue-500/30 transition-all hover:scale-105"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <textarea
-                value={modelReference || ''}
-                onChange={(e) => handleModelDescriptionChange(e.target.value)}
-                placeholder={language === 'en'
-                  ? 'e.g., tall female model, athletic build, olive skin tone, shoulder-length brown hair, confident posture, professional runway walk'
-                  : 'مثال: موديل أنثى طويلة، بنية رياضية، بشرة زيتونية، شعر بني بطول الكتف، وضعية واثقة، مشية احترافية'}
-                className="w-full px-4 py-3 border border-blue-600/50 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-blue-950/30 text-white placeholder-gray-500 text-sm"
-                rows={3}
-              />
-
-              {modelReference && modelReference.trim() && (
-                <button
-                  onClick={clearModelReference}
-                  className="mt-2 text-xs text-red-400 hover:text-red-300 font-medium"
-                >
-                  {language === 'en' ? '✕ Clear Model Description' : '✕ مسح وصف الموديل'}
-                </button>
+              ) : (
+                <label className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-3 px-6 rounded-lg cursor-pointer transition-all shadow-lg">
+                  {language === 'en' ? '📸 Upload Model Photo' : '📸 رفع صورة الموديل'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleModelReferenceUpload}
+                    className="hidden"
+                  />
+                </label>
               )}
             </div>
 
