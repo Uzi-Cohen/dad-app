@@ -154,8 +154,8 @@ export default function VideoStudioPage() {
 
         console.log('Task update:', task.status, task.progress)
 
-        // Update progress (Runway returns progress as 0-100)
-        const currentProgress = task.progress || 0
+        // Update progress (Runway returns progress as 0-1, convert to 0-100 for display)
+        const currentProgress = (task.progress || 0) * 100
         setProgress(currentProgress)
 
         // Calculate estimated time remaining
@@ -167,15 +167,18 @@ export default function VideoStudioPage() {
         }
 
         // Check task status (Runway statuses: PENDING, RUNNING, SUCCEEDED, FAILED, CANCELLED)
-        if (task.status === 'SUCCEEDED' && task.output && task.output.length > 0) {
-          const videoUrl = task.output[0]
-          setVideoUrl(videoUrl)
-          setIsGenerating(false)
+        if (task.status === 'SUCCEEDED') {
           setProgress(100)
           setEstimatedTime(0)
 
-          // Save to gallery
-          saveVideoToGallery(videoUrl, taskId)
+          if (task.output && task.output.length > 0) {
+            const videoUrl = task.output[0]
+            setVideoUrl(videoUrl)
+            setIsGenerating(false)
+
+            // Save to gallery
+            saveVideoToGallery(videoUrl, taskId)
+          }
         } else if (task.status === 'FAILED') {
           alert('Video generation failed: ' + (task.failure || 'Unknown error'))
           setIsGenerating(false)
