@@ -7,34 +7,41 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   const navigation = [
-    { name: 'Video Studio', href: '/', icon: '🎬' },
-    { name: 'Image Generator', href: '/generate-image', icon: '🖼️' },
-    { name: 'Dress Designer', href: '/design', icon: '✏️' },
+    { name: 'Video Studio', href: '/', icon: '🎬', gradient: 'from-purple-500 to-pink-500' },
+    { name: 'Image Generator', href: '/generate-image', icon: '🖼️', gradient: 'from-blue-500 to-cyan-500' },
+    { name: 'Dress Designer', href: '/design', icon: '✏️', gradient: 'from-pink-500 to-rose-500' },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-black">
+      {/* Animated background particles */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-float"></div>
+        <div className="absolute top-40 right-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-float" style={{ animationDelay: '4s' }}></div>
+      </div>
+
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="relative border-b border-white/10 backdrop-blur-xl bg-black/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 py-4">
-            <span className="text-3xl">👗</span>
+          <div className="flex items-center gap-4 py-6">
+            <div className="text-4xl animate-pulse-glow">👗</div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold neon-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
                 Fashion AI Studio
               </h1>
-              <p className="text-sm text-gray-500">
-                Design, generate, and transform with AI
+              <p className="text-sm text-gray-400 mt-1">
+                Design, generate, and transform with cutting-edge AI
               </p>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Navigation Tabs */}
-        <div className="mb-8">
-          <nav className="flex space-x-2 bg-white rounded-xl p-2 shadow-sm border border-gray-200">
+        <div className="mb-8 animate-fadeIn">
+          <nav className="flex space-x-2 glass rounded-2xl p-2">
             {navigation.map((item) => {
               const isActive = pathname === item.href
               return (
@@ -42,15 +49,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   key={item.name}
                   href={item.href}
                   className={`
-                    flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-sm transition-all
+                    flex-1 flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-semibold text-sm transition-all duration-300
                     ${
                       isActive
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg shadow-purple-500/50 scale-105`
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
                     }
                   `}
                 >
-                  <span className="text-xl">{item.icon}</span>
+                  <span className="text-2xl">{item.icon}</span>
                   <span>{item.name}</span>
                 </Link>
               )
@@ -59,7 +66,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Main Content */}
-        <div>{children}</div>
+        <div className="animate-fadeIn">{children}</div>
+      </div>
+
+      {/* Footer credit */}
+      <div className="relative text-center py-8 text-gray-600 text-sm">
+        Powered by Runway AI • Made with ✨
       </div>
     </div>
   )

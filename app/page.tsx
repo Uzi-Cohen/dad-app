@@ -12,6 +12,8 @@ export default function VideoStudioPage() {
   const [prompt, setPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [videoUrl, setVideoUrl] = useState<string | null>(null)
+  const [progress, setProgress] = useState(0)
+  const [estimatedTime, setEstimatedTime] = useState(0)
 
   const templates = [
     {
@@ -19,28 +21,28 @@ export default function VideoStudioPage() {
       name: 'Elegant Showcase',
       prompt: 'Elegant runway style presentation with smooth camera movements, professional fashion lighting, luxurious atmosphere',
       icon: '✨',
-      color: 'purple',
+      color: 'from-purple-500 to-violet-600',
     },
     {
       id: 'dynamic' as VideoTemplate,
       name: 'Dynamic Energy',
       prompt: 'Dynamic energetic fashion video with quick cuts, vibrant movement, modern urban vibe, trending style',
       icon: '⚡',
-      color: 'blue',
+      color: 'from-blue-500 to-cyan-600',
     },
     {
       id: 'minimal' as VideoTemplate,
       name: 'Minimal Chic',
       prompt: 'Minimalist clean presentation, soft lighting, gentle movements, sophisticated and timeless aesthetic',
       icon: '🤍',
-      color: 'gray',
+      color: 'from-gray-400 to-slate-600',
     },
     {
       id: 'luxury' as VideoTemplate,
       name: 'Luxury Premium',
       prompt: 'High-end luxury fashion presentation, dramatic lighting, cinematic quality, exclusive boutique feel',
       icon: '💎',
-      color: 'pink',
+      color: 'from-pink-500 to-rose-600',
     },
   ]
 
@@ -83,6 +85,8 @@ export default function VideoStudioPage() {
 
     setIsGenerating(true)
     setVideoUrl(null)
+    setProgress(0)
+    setEstimatedTime(60) // Estimate 60 seconds
 
     try {
       const selectedTemplateData = templates.find(t => t.id === selectedTemplate)
@@ -101,6 +105,7 @@ export default function VideoStudioPage() {
 
       if (data.error) {
         alert('Error: ' + data.error)
+        setIsGenerating(false)
         return
       }
 
@@ -119,20 +124,37 @@ export default function VideoStudioPage() {
   }
 
   const pollJobStatus = async (jobId: string) => {
+    const startTime = Date.now()
+
     const checkStatus = async () => {
       try {
         const response = await fetch(`/api/jobs/${jobId}`)
         const data = await response.json()
 
+        // Update progress
+        const currentProgress = data.job?.progress || 0
+        setProgress(currentProgress)
+
+        // Calculate estimated time remaining
+        const elapsed = (Date.now() - startTime) / 1000 // seconds
+        if (currentProgress > 0) {
+          const totalEstimated = (elapsed / currentProgress) * 100
+          const remaining = Math.max(0, totalEstimated - elapsed)
+          setEstimatedTime(Math.ceil(remaining))
+        }
+
         if (data.job?.status === 'COMPLETED' && data.job?.outputUrl) {
           setVideoUrl(data.job.outputUrl)
           setIsGenerating(false)
+          setProgress(100)
+          setEstimatedTime(0)
         } else if (data.job?.status === 'FAILED') {
-          alert('Video generation failed')
+          alert('Video generation failed: ' + (data.job?.error || 'Unknown error'))
           setIsGenerating(false)
+          setProgress(0)
         } else {
-          // Still processing, check again in 3 seconds
-          setTimeout(checkStatus, 3000)
+          // Still processing, check again in 2 seconds
+          setTimeout(checkStatus, 2000)
         }
       } catch (error) {
         console.error('Status check failed:', error)
@@ -147,35 +169,40 @@ export default function VideoStudioPage() {
     <AppLayout>
       <div className="space-y-8">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
-          <h2 className="text-3xl font-bold mb-2">Transform Photos into Cinematic Videos</h2>
-          <p className="text-purple-100 text-lg">
-            Upload a dress photo and watch AI create a stunning promotional video
+        <div className="glass rounded-2xl p-8 border border-purple-500/20 shadow-2xl shadow-purple-500/10">
+          <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+            Transform Photos into Cinematic Videos
+          </h2>
+          <p className="text-gray-400 text-lg">
+            Upload a dress photo and watch AI create a stunning promotional video with Runway Gen-4
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upload Section */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">1. Upload Image</h3>
+          <div className="glass rounded-2xl p-6 border border-white/10">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-2xl">📸</span>
+              1. Upload Image
+            </h3>
 
             {!uploadedImage ? (
               <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`border-3 border-dashed rounded-xl p-12 text-center transition-all ${
+                className={`border-3 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
                   isDragging
-                    ? 'border-purple-500 bg-purple-50'
-                    : 'border-gray-300 hover:border-purple-400'
+                    ? 'border-purple-500 bg-purple-500/10'
+                    : 'border-gray-700 hover:border-purple-500/50 hover:bg-white/5'
                 }`}
               >
-                <span className="text-6xl block mb-4">📸</span>
-                <p className="text-gray-900 font-semibold mb-2">
+                <span className="text-6xl block mb-4 animate-float">📸</span>
+                <p className="text-white font-semibold mb-2">
                   Drag and drop your dress photo here
                 </p>
                 <p className="text-gray-500 text-sm mb-4">or</p>
-                <label className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all cursor-pointer">
+                <label className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all cursor-pointer shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70">
                   Choose File
                   <input
                     type="file"
@@ -187,7 +214,7 @@ export default function VideoStudioPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100">
+                <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-900 border border-white/10">
                   <img
                     src={uploadedImage}
                     alt="Uploaded"
@@ -196,7 +223,7 @@ export default function VideoStudioPage() {
                 </div>
                 <button
                   onClick={() => setUploadedImage(null)}
-                  className="w-full py-2 text-sm text-gray-600 hover:text-gray-900 font-medium"
+                  className="w-full py-2 text-sm text-gray-400 hover:text-white font-medium hover:bg-white/5 rounded-lg transition-all"
                 >
                   Change Image
                 </button>
@@ -205,8 +232,11 @@ export default function VideoStudioPage() {
           </div>
 
           {/* Template Selection */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">2. Choose Style</h3>
+          <div className="glass rounded-2xl p-6 border border-white/10">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-2xl">🎨</span>
+              2. Choose Style
+            </h3>
 
             <div className="grid grid-cols-2 gap-3 mb-6">
               {templates.map((template) => (
@@ -216,14 +246,14 @@ export default function VideoStudioPage() {
                     setSelectedTemplate(template.id)
                     setPrompt('')
                   }}
-                  className={`p-4 rounded-lg border-2 text-left transition-all ${
+                  className={`p-4 rounded-xl border-2 text-left transition-all duration-300 ${
                     selectedTemplate === template.id
-                      ? 'border-purple-500 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300'
+                      ? `border-purple-500 bg-gradient-to-br ${template.color} shadow-lg shadow-purple-500/50`
+                      : 'border-gray-700 hover:border-purple-500/50 bg-white/5 hover:bg-white/10'
                   }`}
                 >
                   <div className="text-3xl mb-2">{template.icon}</div>
-                  <div className="font-semibold text-gray-900 text-sm">
+                  <div className={`font-semibold text-sm ${selectedTemplate === template.id ? 'text-white' : 'text-gray-300'}`}>
                     {template.name}
                   </div>
                 </button>
@@ -231,14 +261,14 @@ export default function VideoStudioPage() {
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Custom Prompt (Optional)
               </label>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Describe the video style you want..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
+                className="w-full px-4 py-3 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white/5 text-white placeholder-gray-500"
                 rows={3}
               />
             </div>
@@ -246,10 +276,10 @@ export default function VideoStudioPage() {
             <button
               onClick={handleGenerateVideo}
               disabled={!uploadedImage || isGenerating}
-              className={`w-full py-4 rounded-lg font-bold text-white transition-all ${
+              className={`w-full py-4 rounded-lg font-bold text-white transition-all duration-300 ${
                 !uploadedImage || isGenerating
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl'
+                  ? 'bg-gray-700 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70 hover:scale-105'
               }`}
             >
               {isGenerating ? (
@@ -261,24 +291,54 @@ export default function VideoStudioPage() {
                 '🎬 Generate Video'
               )}
             </button>
+
+            {/* Progress Bar */}
+            {isGenerating && (
+              <div className="mt-6 space-y-3 animate-fadeIn">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-300 font-medium">
+                    Progress: {Math.round(progress)}%
+                  </span>
+                  <span className="text-gray-400">
+                    {estimatedTime > 0 ? `~${estimatedTime}s remaining` : 'Almost done...'}
+                  </span>
+                </div>
+                <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+                  <div
+                    className="h-full bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 bg-[length:200%_100%] animate-gradient transition-all duration-500 ease-out shadow-lg shadow-purple-500/50"
+                    style={{ width: `${Math.max(progress, 5)}%` }}
+                  />
+                </div>
+                <div className="text-xs text-center text-gray-400">
+                  {progress < 20 && '🎬 Initializing...'}
+                  {progress >= 20 && progress < 50 && '✨ Generating frames...'}
+                  {progress >= 50 && progress < 80 && '🎨 Adding motion...'}
+                  {progress >= 80 && progress < 100 && '🎞️ Finalizing video...'}
+                  {progress >= 100 && '✅ Complete!'}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Video Result */}
         {videoUrl && (
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Your Video is Ready! 🎉</h3>
+          <div className="glass rounded-2xl p-6 border border-green-500/20 shadow-2xl shadow-green-500/10 animate-fadeIn">
+            <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-3xl">🎉</span>
+              Your Video is Ready!
+            </h3>
             <video
               src={videoUrl}
               controls
-              className="w-full rounded-lg"
+              className="w-full rounded-xl border border-white/10 shadow-2xl"
             />
             <a
               href={videoUrl}
               download
-              className="mt-4 inline-block w-full text-center bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-3 px-6 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all"
+              className="mt-4 inline-block w-full text-center bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-4 px-6 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg shadow-green-500/50 hover:shadow-green-500/70"
             >
-              Download Video
+              ⬇️ Download Video
             </a>
           </div>
         )}
