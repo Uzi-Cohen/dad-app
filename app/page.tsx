@@ -1,66 +1,28 @@
 'use client'
 
-import { useState } from 'react'
-import ImageGenerator from './components/ImageGenerator'
-import VideoGenerator from './components/VideoGenerator'
-import Gallery from './components/Gallery'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/app/contexts/AuthContext'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'image' | 'video' | 'gallery'>('image')
-  const [generatedImages, setGeneratedImages] = useState<string[]>([])
-  const [generatedVideos, setGeneratedVideos] = useState<string[]>([])
+  const { user, loading } = useAuth()
+  const router = useRouter()
 
-  const addImage = (imageUrl: string) => {
-    setGeneratedImages(prev => [imageUrl, ...prev])
-  }
-
-  const addVideo = (videoUrl: string) => {
-    setGeneratedVideos(prev => [videoUrl, ...prev])
-  }
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        router.push('/dashboard')
+      } else {
+        router.push('/login')
+      }
+    }
+  }, [user, loading, router])
 
   return (
-    <div>
-      <div className="mb-8">
-        <nav className="flex flex-wrap gap-3">
-          <button
-            onClick={() => setActiveTab('image')}
-            className={`px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg ${
-              activeTab === 'image'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white scale-105'
-                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
-            }`}
-          >
-            📸 Generate Images
-          </button>
-          <button
-            onClick={() => setActiveTab('video')}
-            className={`px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg ${
-              activeTab === 'video'
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white scale-105'
-                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
-            }`}
-          >
-            🎬 Generate Videos
-          </button>
-          <button
-            onClick={() => setActiveTab('gallery')}
-            className={`px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg ${
-              activeTab === 'gallery'
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white scale-105'
-                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
-            }`}
-          >
-            🖼️ Gallery ({generatedImages.length + generatedVideos.length})
-          </button>
-        </nav>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
-        {activeTab === 'image' && <ImageGenerator onImageGenerated={addImage} />}
-        {activeTab === 'video' && <VideoGenerator onVideoGenerated={addVideo} />}
-        {activeTab === 'gallery' && (
-          <Gallery images={generatedImages} videos={generatedVideos} />
-        )}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
+        <p className="text-gray-600 font-medium">Loading...</p>
       </div>
     </div>
   )
