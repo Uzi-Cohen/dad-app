@@ -75,6 +75,8 @@ interface UploadedImage {
   id: string
   data: string
   name: string
+  type: 'image' | 'video'
+  thumbnail?: string // For videos, store extracted frame
 }
 
 export default function VideoStudioPage() {
@@ -144,15 +146,50 @@ export default function VideoStudioPage() {
     processFiles(files)
   }
 
-  const processFiles = (files: File[]) => {
-    files.forEach(file => {
+  const extractVideoFrame = (videoFile: File): Promise<{ videoData: string, thumbnail: string }> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video')
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const videoData = e.target?.result as string
+        video.src = videoData
+
+        video.addEventListener('loadedmetadata', () => {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+
+          // Seek to 1 second or 10% of duration, whichever is less
+          const seekTime = Math.min(1, video.duration * 0.1)
+          video.currentTime = seekTime
+        })
+
+        video.addEventListener('seeked', () => {
+          ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
+          const thumbnail = canvas.toDataURL('image/jpeg', 0.8)
+          resolve({ videoData, thumbnail })
+        })
+
+        video.addEventListener('error', reject)
+      }
+
+      reader.onerror = reject
+      reader.readAsDataURL(videoFile)
+    })
+  }
+
+  const processFiles = async (files: File[]) => {
+    for (const file of files) {
       if (file.type.startsWith('image/')) {
         const reader = new FileReader()
         reader.onload = (e) => {
           const newImage: UploadedImage = {
             id: Math.random().toString(36).substring(7),
             data: e.target?.result as string,
-            name: file.name
+            name: file.name,
+            type: 'image'
           }
           setUploadedImages(prev => [...prev, newImage])
           if (!selectedImageId) {
@@ -160,8 +197,26 @@ export default function VideoStudioPage() {
           }
         }
         reader.readAsDataURL(file)
+      } else if (file.type.startsWith('video/')) {
+        try {
+          const { videoData, thumbnail } = await extractVideoFrame(file)
+          const newVideo: UploadedImage = {
+            id: Math.random().toString(36).substring(7),
+            data: videoData,
+            name: file.name,
+            type: 'video',
+            thumbnail
+          }
+          setUploadedImages(prev => [...prev, newVideo])
+          if (!selectedImageId) {
+            setSelectedImageId(newVideo.id)
+          }
+        } catch (error) {
+          console.error('Failed to extract video frame:', error)
+          alert('Failed to process video: ' + file.name)
+        }
       }
-    })
+    }
   }
 
   const removeImage = (id: string) => {
@@ -184,11 +239,14 @@ export default function VideoStudioPage() {
       const selectedTemplateData = templates.find(t => t.id === selectedTemplate)
       const finalPrompt = prompt || selectedTemplateData?.prompt || ''
 
+      // Use thumbnail for videos, original data for images
+      const imageToUse = selectedImage.type === 'video' ? selectedImage.thumbnail! : selectedImage.data
+
       const response = await fetch('/api/runway/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          image: selectedImage.data,
+          image: imageToUse,
           prompt: finalPrompt,
         }),
       })
@@ -346,7 +404,7 @@ export default function VideoStudioPage() {
                     : 'border-gray-700 hover:border-purple-500/50 hover:bg-white/5'
                 }`}
               >
-                <span className="text-6xl block mb-4 animate-float">📸</span>
+                <span className="text-6xl block mb-4 animate-float">📸🎥</span>
                 <p className="text-white font-semibold mb-2">
                   {t.uploadDrag}
                 </p>
@@ -355,29 +413,49 @@ export default function VideoStudioPage() {
                   {t.uploadButton}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     multiple
                     onChange={handleFileSelect}
                     className="hidden"
                   />
                 </label>
-                <p className="text-gray-500 text-xs mt-4">{t.uploadMultiple}</p>
+                <p className="text-gray-500 text-xs mt-4">{language === 'en' ? 'Upload images or videos - AI will extract key frames from videos' : 'ارفع صور أو فيديوهات - سيستخرج الذكاء الاصطناعي الإطارات الرئيسية من الفيديوهات'}</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Selected Image Preview */}
-                {selectedImageId && (
-                  <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-900 border-2 border-purple-500">
-                    <img
-                      src={uploadedImages.find(img => img.id === selectedImageId)?.data}
-                      alt="Selected"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-3 py-1 rounded-full font-semibold">
-                      {t.selectedAngle}
+                {/* Selected Image/Video Preview */}
+                {selectedImageId && (() => {
+                  const selected = uploadedImages.find(img => img.id === selectedImageId)
+                  if (!selected) return null
+
+                  return (
+                    <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-900 border-2 border-purple-500">
+                      {selected.type === 'video' ? (
+                        <>
+                          <video
+                            src={selected.data}
+                            controls
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-2 left-2 bg-pink-600 text-white text-xs px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+                            🎥 {language === 'en' ? 'Video Source' : 'مصدر الفيديو'}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <img
+                            src={selected.data}
+                            alt="Selected"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                            {t.selectedAngle}
+                          </div>
+                        </>
+                      )}
                     </div>
-                  </div>
-                )}
+                  )
+                })()}
 
                 {/* Thumbnails Grid */}
                 <div className="grid grid-cols-3 gap-2">
@@ -392,16 +470,25 @@ export default function VideoStudioPage() {
                       }`}
                     >
                       <img
-                        src={img.data}
+                        src={img.type === 'video' ? img.thumbnail! : img.data}
                         alt={img.name}
                         className="w-full h-full object-cover"
                       />
+                      {img.type === 'video' && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                          <div className="bg-white/90 rounded-full p-2">
+                            <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           removeImage(img.id)
                         }}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 z-10"
                       >
                         ×
                       </button>
@@ -413,7 +500,7 @@ export default function VideoStudioPage() {
                   {t.changeImages}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     multiple
                     onChange={handleFileSelect}
                     className="hidden"
