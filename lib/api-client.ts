@@ -1,7 +1,7 @@
 /**
  * API Client
  *
- * Utility for making authenticated requests to the backend API
+ * Utility for making requests to the backend API
  */
 
 const API_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -18,29 +18,6 @@ export class ApiError extends Error {
 }
 
 export class ApiClient {
-  private token: string | null = null
-
-  constructor() {
-    if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('auth_token')
-    }
-  }
-
-  setToken(token: string | null) {
-    this.token = token
-    if (typeof window !== 'undefined') {
-      if (token) {
-        localStorage.setItem('auth_token', token)
-      } else {
-        localStorage.removeItem('auth_token')
-      }
-    }
-  }
-
-  getToken(): string | null {
-    return this.token
-  }
-
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -48,10 +25,6 @@ export class ApiClient {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
-    }
-
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`
     }
 
     const url = `${API_URL}${endpoint}`
@@ -71,39 +44,6 @@ export class ApiClient {
     }
 
     return data
-  }
-
-  // Auth
-  async login(email: string, password: string) {
-    const data = await this.request<{ user: any; token: string }>(
-      '/api/auth/login',
-      {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      }
-    )
-    this.setToken(data.token)
-    return data
-  }
-
-  async register(email: string, password: string, name?: string) {
-    const data = await this.request<{ user: any; token: string }>(
-      '/api/auth/register',
-      {
-        method: 'POST',
-        body: JSON.stringify({ email, password, name }),
-      }
-    )
-    this.setToken(data.token)
-    return data
-  }
-
-  async getMe() {
-    return this.request<{ user: any }>('/api/auth/me')
-  }
-
-  logout() {
-    this.setToken(null)
   }
 
   // Brands

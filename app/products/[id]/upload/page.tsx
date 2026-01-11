@@ -2,7 +2,6 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ProtectedRoute } from '@/app/components/ProtectedRoute'
 import { DashboardLayout } from '@/app/components/DashboardLayout'
 import { apiClient } from '@/lib/api-client'
 import Link from 'next/link'
@@ -157,7 +156,7 @@ export default function UploadPhotosPage({ params }: { params: { id: string } })
   const canUpload = hasFiles && !uploading && !allUploaded
 
   return (
-    <ProtectedRoute>
+    
       <DashboardLayout>
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -358,6 +357,6 @@ export default function UploadPhotosPage({ params }: { params: { id: string } })
           )}
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
+    
   )
 }

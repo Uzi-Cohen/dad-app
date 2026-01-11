@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ProtectedRoute } from '@/app/components/ProtectedRoute'
 import { DashboardLayout } from '@/app/components/DashboardLayout'
 import { apiClient } from '@/lib/api-client'
 import Link from 'next/link'
@@ -43,8 +42,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <DashboardLayout>
+    <DashboardLayout>
         <div className="space-y-8">
           {/* Welcome Section */}
           <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
@@ -185,7 +183,6 @@ export default function DashboardPage() {
           )}
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
   )
 }
 

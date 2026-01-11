@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ProtectedRoute } from '@/app/components/ProtectedRoute'
 import { DashboardLayout } from '@/app/components/DashboardLayout'
 import { apiClient } from '@/lib/api-client'
 import Link from 'next/link'
@@ -84,19 +83,19 @@ export default function NewProductPage() {
 
   if (loading) {
     return (
-      <ProtectedRoute>
+      
         <DashboardLayout>
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-600"></div>
           </div>
         </DashboardLayout>
-      </ProtectedRoute>
+      
     )
   }
 
   if (brands.length === 0) {
     return (
-      <ProtectedRoute>
+      
         <DashboardLayout>
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
@@ -117,12 +116,12 @@ export default function NewProductPage() {
             </div>
           </div>
         </DashboardLayout>
-      </ProtectedRoute>
+      
     )
   }
 
   return (
-    <ProtectedRoute>
+    
       <DashboardLayout>
         <div className="max-w-3xl mx-auto">
           {/* Header */}
@@ -317,6 +316,6 @@ export default function NewProductPage() {
           </form>
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
+    
   )
 }

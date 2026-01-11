@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ProtectedRoute } from '@/app/components/ProtectedRoute'
 import { DashboardLayout } from '@/app/components/DashboardLayout'
 import { apiClient } from '@/lib/api-client'
 import Link from 'next/link'
@@ -51,7 +50,7 @@ export default function JobsPage() {
   })
 
   return (
-    <ProtectedRoute>
+    
       <DashboardLayout>
         <div className="space-y-6">
           {/* Header */}
@@ -186,7 +185,7 @@ export default function JobsPage() {
           )}
         </div>
       </DashboardLayout>
-    </ProtectedRoute>
+    
   )
 }
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ProtectedRoute } from '@/app/components/ProtectedRoute'
 import { DashboardLayout } from '@/app/components/DashboardLayout'
 import { apiClient } from '@/lib/api-client'
 import Link from 'next/link'
@@ -31,19 +30,19 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
   if (loading) {
     return (
-      <ProtectedRoute>
+      
         <DashboardLayout>
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-600"></div>
           </div>
         </DashboardLayout>
-      </ProtectedRoute>
+      
     )
   }
 
   if (!product) {
     return (
-      <ProtectedRoute>
+      
         <DashboardLayout>
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-gray-900">Product not found</h2>
@@ -52,7 +51,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </Link>
           </div>
         </DashboardLayout>
-      </ProtectedRoute>
+      
     )
   }
 
@@ -61,7 +60,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const completedVideos = videoGenerations.filter((g: any) => g.status === 'COMPLETED')
 
   return (
-    <ProtectedRoute>
+    
       <DashboardLayout>
         <div className="space-y-6">
           {/* Header */}
@@ -306,7 +305,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           />
         )}
       </DashboardLayout>
-    </ProtectedRoute>
+    
   )
 }
 
