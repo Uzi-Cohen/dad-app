@@ -16,13 +16,13 @@ export async function POST(req: Request) {
     }
 
     const task = await client.imageToVideo.create({
-      model: "gen4_turbo",
-      promptText: prompt ?? "Elegant fashion product video",
+      model: "gen4",
+      promptText: prompt ?? "Professional high-end fashion video with a real fashion model wearing the dress, walking on a luxury runway or elegant urban setting, cinematic lighting, photorealistic, 4K quality, smooth camera movement",
       promptImage: [
         { uri: image, position: "first" }
       ],
-      ratio: "1280:720",
-      duration: 4,
+      ratio: "1920:1080",
+      duration: 10,
     });
 
     console.log("TASK CREATED:", task.id, task.status);
