@@ -295,6 +295,12 @@ export default function VideoStudioPage() {
     })
   }
 
+  const analyzeDressFromImage = async (dressImage: string): Promise<string> => {
+    // TODO: Could use AI vision API to analyze dress, but for now we'll use a simple approach
+    // Return a basic description that prompts the AI to replicate the dress design
+    return "wearing the exact dress design, colors, patterns, and style from the reference material"
+  }
+
   const handleGenerateVideo = async () => {
     const selectedImage = uploadedImages.find(img => img.id === selectedImageId)
     if (!selectedImage) return
@@ -313,17 +319,24 @@ export default function VideoStudioPage() {
 
       let imageToSend: string
 
-      // If model reference exists, create composite image
+      // NEW APPROACH: Model reference is PRIMARY, dress is described
       if (modelReference) {
+        // Use MODEL as the main input image
+        imageToSend = modelReference
+
+        // Create composite for AI to see the dress design
         try {
-          imageToSend = await createCompositeImage(modelReference, dressImage)
-          finalPrompt = `The person on the left side of the image wearing the EXACT dress shown on the right side. ${finalPrompt} Keep the model's appearance identical to the left photo and the dress design identical to the right photo.`
+          const compositeForPrompt = await createCompositeImage(modelReference, dressImage)
+          // Use composite but emphasize model wearing dress from right side
+          imageToSend = compositeForPrompt
+          finalPrompt = `This is the same person shown on the left, now wearing the EXACT dress/outfit shown on the right side. ${finalPrompt} Preserve the model's face, body, and characteristics from the left photo. Copy the dress design perfectly from the right photo - same colors, patterns, cut, style, and details. Animate this person wearing that exact dress.`
         } catch (error) {
-          console.error('Failed to create composite image:', error)
-          alert('Failed to combine model and dress images. Using dress image only.')
-          imageToSend = dressImage
+          console.error('Failed to create composite:', error)
+          // Fallback: use model photo and describe the dress in text
+          finalPrompt = `The person in this image now ${await analyzeDressFromImage(dressImage)}. ${finalPrompt}`
         }
       } else {
+        // No model reference: use dress image (original behavior)
         imageToSend = dressImage
       }
 
@@ -642,13 +655,13 @@ export default function VideoStudioPage() {
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">👤</span>
                 <label className="block text-sm font-medium text-blue-300">
-                  {language === 'en' ? 'Model Reference Photo (Recommended)' : 'صورة الموديل المرجعية (مستحسن)'}
+                  {language === 'en' ? 'Your Model (Recommended)' : 'الموديل الخاص بك (مستحسن)'}
                 </label>
               </div>
               <p className="text-xs text-gray-400 mb-3">
                 {language === 'en'
-                  ? 'Upload a clear photo of your preferred model. The AI will combine this person with your dress designs for consistent branding across all videos.'
-                  : 'ارفع صورة واضحة للموديل المفضل لديك. سيقوم الذكاء الاصطناعي بدمج هذا الشخص مع تصميمات الفساتين للحصول على علامة تجارية متسقة عبر جميع الفيديوهات.'}
+                  ? 'Upload a photo of YOUR model. AI will put your dress designs ON this person. This is the main character in all your videos.'
+                  : 'ارفع صورة الموديل الخاص بك. سيضع الذكاء الاصطناعي تصميمات فساتينك على هذا الشخص. هذه هي الشخصية الرئيسية في جميع مقاطع الفيديو الخاصة بك.'}
               </p>
 
               {modelReference ? (
@@ -738,15 +751,68 @@ export default function VideoStudioPage() {
             <video
               src={videoUrl}
               controls
-              className="w-full rounded-xl border border-white/10 shadow-2xl"
+              className="w-full rounded-xl border border-white/10 shadow-2xl mb-4"
             />
-            <a
-              href={videoUrl}
-              download
-              className="mt-4 inline-block w-full text-center bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-4 px-6 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg shadow-green-500/50 hover:shadow-green-500/70"
-            >
-              ⬇️ {t.downloadVideo}
-            </a>
+
+            {/* Video Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+              <a
+                href={videoUrl}
+                download
+                className="text-center bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-3 px-6 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg shadow-green-500/50 hover:shadow-green-500/70"
+              >
+                ⬇️ {language === 'en' ? 'Download' : 'تحميل'}
+              </a>
+              <button
+                onClick={() => {
+                  // Save current video to gallery
+                  saveVideoToGallery(videoUrl, Date.now().toString())
+                }}
+                className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all shadow-lg"
+              >
+                💾 {language === 'en' ? 'Save to Gallery' : 'حفظ في المعرض'}
+              </button>
+              <button
+                onClick={() => {
+                  setVideoUrl(null)
+                  setProgress(0)
+                }}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
+              >
+                🔄 {language === 'en' ? 'Create New' : 'إنشاء جديد'}
+              </button>
+            </div>
+
+            {/* Edit Options */}
+            <div className="border-t border-white/10 pt-4">
+              <h4 className="text-sm font-semibold text-gray-300 mb-3">
+                {language === 'en' ? '✨ Edit & Regenerate' : '✨ تحرير وإعادة إنشاء'}
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {templates.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => {
+                      setSelectedTemplate(template.id)
+                      handleGenerateVideo()
+                    }}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      selectedTemplate === template.id
+                        ? 'border-purple-500 bg-purple-500/20'
+                        : 'border-gray-700 hover:border-purple-500/50 bg-white/5'
+                    }`}
+                  >
+                    <div className="text-xl mb-1">{template.icon}</div>
+                    <div className="text-xs text-gray-300">{t[template.nameKey]}</div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {language === 'en'
+                  ? 'Click a style to regenerate the video with that template'
+                  : 'انقر على أسلوب لإعادة إنشاء الفيديو بهذا القالب'}
+              </p>
+            </div>
           </div>
         )}
       </div>
