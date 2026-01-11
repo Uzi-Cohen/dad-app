@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@fal-ai/client": "^1.8.3",
+    "@runwayml/sdk": "^3.11.0",
     "axios": "^1.6.2",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.66.4",
