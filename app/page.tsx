@@ -19,28 +19,28 @@ export default function VideoStudioPage() {
     {
       id: 'elegant' as VideoTemplate,
       name: 'Elegant Showcase',
-      prompt: 'Elegant runway style presentation with smooth camera movements, professional fashion lighting, luxurious atmosphere',
+      prompt: 'Professional fashion model wearing the dress, walking elegantly on a luxury runway with professional studio lighting, smooth cinematic camera movements following the model, photorealistic 4K quality, high-end fashion show atmosphere with dramatic spotlights and elegant background',
       icon: '✨',
       color: 'from-purple-500 to-violet-600',
     },
     {
       id: 'dynamic' as VideoTemplate,
       name: 'Dynamic Energy',
-      prompt: 'Dynamic energetic fashion video with quick cuts, vibrant movement, modern urban vibe, trending style',
+      prompt: 'Real fashion model wearing the dress in an urban city setting, walking confidently through modern architecture, dynamic camera movement, vibrant natural lighting, photorealistic with depth of field, trendy street fashion vibe, cinematic 4K quality',
       icon: '⚡',
       color: 'from-blue-500 to-cyan-600',
     },
     {
       id: 'minimal' as VideoTemplate,
       name: 'Minimal Chic',
-      prompt: 'Minimalist clean presentation, soft lighting, gentle movements, sophisticated and timeless aesthetic',
+      prompt: 'Fashion model in the dress in a minimalist white studio with natural window lighting, slow graceful movements, soft shadows, clean professional photography aesthetic, photorealistic textures, sophisticated timeless feel, editorial fashion video quality',
       icon: '🤍',
       color: 'from-gray-400 to-slate-600',
     },
     {
       id: 'luxury' as VideoTemplate,
       name: 'Luxury Premium',
-      prompt: 'High-end luxury fashion presentation, dramatic lighting, cinematic quality, exclusive boutique feel',
+      prompt: 'High-fashion model wearing the dress in an opulent luxury boutique or mansion setting, dramatic professional lighting with golden hour ambiance, cinematic slow-motion camera work, photorealistic 4K quality, exclusive Vogue-style editorial production',
       icon: '💎',
       color: 'from-pink-500 to-rose-600',
     },
@@ -86,7 +86,7 @@ export default function VideoStudioPage() {
     setIsGenerating(true)
     setVideoUrl(null)
     setProgress(0)
-    setEstimatedTime(60) // Estimate 60 seconds
+    setEstimatedTime(120) // Estimate 120 seconds for 10s high-quality video
 
     try {
       const selectedTemplateData = templates.find(t => t.id === selectedTemplate)
@@ -202,10 +202,10 @@ export default function VideoStudioPage() {
         {/* Hero Section */}
         <div className="glass rounded-2xl p-8 border border-purple-500/20 shadow-2xl shadow-purple-500/10">
           <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-            Transform Photos into Cinematic Videos
+            Transform Photos into Professional Fashion Videos
           </h2>
           <p className="text-gray-400 text-lg">
-            Upload a dress photo and watch AI create a stunning promotional video with Runway Gen-4
+            Upload a dress photo and watch AI create a 10-second 4K cinematic video with real models and professional backgrounds using Runway Gen-4
           </p>
         </div>
 
