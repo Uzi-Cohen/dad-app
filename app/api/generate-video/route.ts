@@ -1,52 +1,69 @@
 import { NextResponse } from 'next/server'
-import Replicate from 'replicate'
+
+const RUNWAY_API_KEY = process.env.RUNWAY_API_KEY || 'key_977cd32665ec7400b5efd903b602f862c8e5b275bcb6c0ab5d7edcc3d6b1544d3f07c6f82727cf5f42fd674a30560312c31ef840ea39ec51e37364f3f0cdedf8'
 
 export async function POST(request: Request) {
   try {
-    const { prompt, referenceImage } = await request.json()
+    const { image, prompt } = await request.json()
 
-    if (!process.env.REPLICATE_API_TOKEN) {
+    if (!image) {
       return NextResponse.json(
-        { error: 'Replicate API token not configured' },
-        { status: 500 }
-      )
-    }
-
-    if (!referenceImage) {
-      return NextResponse.json(
-        { error: 'Reference image is required for video generation' },
+        { error: 'Image is required for video generation' },
         { status: 400 }
       )
     }
 
-    const replicate = new Replicate({
-      auth: process.env.REPLICATE_API_TOKEN,
+    if (!RUNWAY_API_KEY) {
+      return NextResponse.json(
+        { error: 'Runway API key not configured' },
+        { status: 500 }
+      )
+    }
+
+    // Create generation request with Runway Gen-3
+    const response = await fetch('https://api.runwayml.com/v1/image_to_video', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RUNWAY_API_KEY}`,
+        'Content-Type': 'application/json',
+        'X-Runway-Version': '2024-11-06'
+      },
+      body: JSON.stringify({
+        model: 'gen3a_turbo',
+        prompt_image: image,
+        prompt_text: prompt || 'Elegant fashion video with smooth camera movement',
+        duration: 5,
+        ratio: '16:9',
+      }),
     })
 
-    // Use Stable Video Diffusion for image-to-video
-    const output = await replicate.run(
-      "stability-ai/stable-video-diffusion:3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
-      {
-        input: {
-          input_image: referenceImage,
-          cond_aug: 0.02,
-          decoding_t: 14,
-          video_length: "14_frames_with_svd",
-          sizing_strategy: "maintain_aspect_ratio",
-          motion_bucket_id: 127,
-          frames_per_second: 6,
-        },
-      }
-    )
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('Runway API error:', errorData)
+      return NextResponse.json(
+        { error: 'Failed to start video generation: ' + errorData },
+        { status: response.status }
+      )
+    }
 
-    // The output is a video URL
-    const videoUrl = output
+    const data = await response.json()
 
-    return NextResponse.json({ videoUrl })
+    // Runway returns a task ID that we need to poll
+    const taskId = data.id
+
+    if (!taskId) {
+      return NextResponse.json(
+        { error: 'No task ID returned from Runway' },
+        { status: 500 }
+      )
+    }
+
+    // Return task ID for polling
+    return NextResponse.json({ jobId: taskId })
   } catch (error) {
     console.error('Error generating video:', error)
     return NextResponse.json(
-      { error: 'Failed to generate video' },
+      { error: 'Failed to generate video: ' + (error instanceof Error ? error.message : 'Unknown error') },
       { status: 500 }
     )
   }

@@ -28,6 +28,7 @@ export default function DressDesignerPage() {
   const [additionalDetails, setAdditionalDetails] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedDesign, setGeneratedDesign] = useState<string | null>(null)
+  const [showPrompt, setShowPrompt] = useState(false)
 
   const dressTypes = [
     { id: 'evening-gown', name: 'Evening Gown', icon: '👗' },
@@ -76,21 +77,27 @@ export default function DressDesignerPage() {
     const necklineName = necklines.find(n => n.id === neckline)?.name || neckline
     const sleeveName = sleeveOptions.find(s => s.id === sleeves)?.name || sleeves
 
-    let prompt = `Professional fashion design: ${dressTypeName} in ${fabricName} fabric, ${necklineName} neckline, ${sleeveName} sleeves, color ${color}.`
+    // Convert hex color to color name for better AI understanding
+    const colorName = color
 
+    let prompt = `A stunning ${dressTypeName.toLowerCase()} dress made from luxurious ${fabricName.toLowerCase()} fabric. The dress features a ${necklineName.toLowerCase()} neckline and ${sleeveName.toLowerCase()} sleeves. The color is specifically ${colorName} - make this color very prominent and accurate.`
+
+    // Add measurements prominently if provided
     if (measurements.bust || measurements.waist || measurements.hips || measurements.length) {
-      prompt += ' Custom tailored fit'
-      if (measurements.bust) prompt += `, bust ${measurements.bust}cm`
-      if (measurements.waist) prompt += `, waist ${measurements.waist}cm`
-      if (measurements.hips) prompt += `, hips ${measurements.hips}cm`
-      if (measurements.length) prompt += `, length ${measurements.length}cm`
+      prompt += ` This is a custom-tailored dress with precise measurements:`
+      if (measurements.bust) prompt += ` bust measurement ${measurements.bust}cm (emphasize fitted bust area),`
+      if (measurements.waist) prompt += ` waist measurement ${measurements.waist}cm (emphasize cinched waist),`
+      if (measurements.hips) prompt += ` hip measurement ${measurements.hips}cm (emphasize hip area fit),`
+      if (measurements.length) prompt += ` dress length ${measurements.length}cm from shoulder to hem,`
+      if (measurements.shoulders) prompt += ` shoulder width ${measurements.shoulders}cm,`
+      prompt = prompt.slice(0, -1) + '.' // Remove trailing comma
     }
 
     if (additionalDetails.trim()) {
-      prompt += `. Additional details: ${additionalDetails}`
+      prompt += ` Special design features: ${additionalDetails}.`
     }
 
-    prompt += '. High quality fashion photography, professional studio lighting, elegant presentation.'
+    prompt += ' Professional fashion photography on a mannequin or dress form, studio lighting, white background, highly detailed, 8k quality, photorealistic.'
 
     return prompt
   }
@@ -295,6 +302,22 @@ export default function DressDesignerPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
                 rows={3}
               />
+            </div>
+
+            {/* Show Prompt Preview */}
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+              <button
+                onClick={() => setShowPrompt(!showPrompt)}
+                className="w-full flex items-center justify-between text-sm font-medium text-blue-900"
+              >
+                <span>👁️ {showPrompt ? 'Hide' : 'Show'} AI Prompt Preview</span>
+                <span>{showPrompt ? '▲' : '▼'}</span>
+              </button>
+              {showPrompt && (
+                <div className="mt-3 p-3 bg-white rounded-lg text-xs text-gray-700 border border-blue-100">
+                  {buildPrompt()}
+                </div>
+              )}
             </div>
 
             {/* Generate Button */}
