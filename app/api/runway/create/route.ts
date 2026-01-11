@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       promptImage: [
         { uri: image, position: "first" }
       ],
-      ratio: "1920:1080",
+      ratio: "1584:672",
       duration: 10,
     });
 
