@@ -235,17 +235,9 @@ export default function VideoStudioPage() {
     }
   }
 
-  const handleModelReferenceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const imageData = e.target?.result as string
-        setModelReference(imageData)
-        localStorage.setItem('model-reference', imageData)
-      }
-      reader.readAsDataURL(file)
-    }
+  const handleModelDescriptionChange = (value: string) => {
+    setModelReference(value)
+    localStorage.setItem('model-reference', value)
   }
 
   const clearModelReference = () => {
@@ -266,9 +258,9 @@ export default function VideoStudioPage() {
       const selectedTemplateData = templates.find(t => t.id === selectedTemplate)
       let finalPrompt = prompt || selectedTemplateData?.prompt || ''
 
-      // Add model reference instruction if model reference exists
-      if (modelReference) {
-        finalPrompt = `Use the EXACT model/person shown in the reference image. ${finalPrompt}`
+      // Add model description to prompt if provided
+      if (modelReference && modelReference.trim()) {
+        finalPrompt = `Fashion model with these specific characteristics: ${modelReference}. ${finalPrompt}`
       }
 
       // Use thumbnail for videos, original data for images
@@ -279,7 +271,6 @@ export default function VideoStudioPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: imageToUse,
-          modelReference: modelReference,
           prompt: finalPrompt,
         }),
       })
@@ -585,46 +576,37 @@ export default function VideoStudioPage() {
               />
             </div>
 
-            {/* Model Reference */}
+            {/* Model Characteristics */}
             <div className="mb-4 p-4 border border-blue-500/30 rounded-lg bg-blue-500/5">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">👤</span>
                 <label className="block text-sm font-medium text-blue-300">
-                  {language === 'en' ? 'Model Reference (Optional)' : 'نموذج مرجعي (اختياري)'}
+                  {language === 'en' ? 'Model Characteristics (Optional)' : 'خصائص الموديل (اختياري)'}
                 </label>
               </div>
               <p className="text-xs text-gray-400 mb-3">
                 {language === 'en'
-                  ? 'Upload a photo of your preferred model. AI will use this person in all generated videos for consistency.'
-                  : 'ارفع صورة للموديل المفضل لديك. سيستخدم الذكاء الاصطناعي هذا الشخص في جميع الفيديوهات المُنشأة للحفاظ على الاتساق.'}
+                  ? 'Describe your preferred model for consistent videos. Example: "tall female model, athletic build, dark skin tone, long black hair, professional runway posture". Be specific for best results.'
+                  : 'صف الموديل المفضل لديك للحصول على فيديوهات متسقة. مثال: "موديل أنثى طويلة، بنية رياضية، بشرة داكنة، شعر أسود طويل، وضعية احترافية". كن محددًا للحصول على أفضل النتائج.'}
               </p>
 
-              {modelReference ? (
-                <div className="space-y-3">
-                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-blue-500">
-                    <img
-                      src={modelReference}
-                      alt="Model Reference"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <button
-                    onClick={clearModelReference}
-                    className="text-xs text-red-400 hover:text-red-300 font-medium"
-                  >
-                    {language === 'en' ? '✕ Remove Model Reference' : '✕ إزالة النموذج المرجعي'}
-                  </button>
-                </div>
-              ) : (
-                <label className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg cursor-pointer transition-all">
-                  {language === 'en' ? '📸 Upload Model Photo' : '📸 رفع صورة الموديل'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleModelReferenceUpload}
-                    className="hidden"
-                  />
-                </label>
+              <textarea
+                value={modelReference || ''}
+                onChange={(e) => handleModelDescriptionChange(e.target.value)}
+                placeholder={language === 'en'
+                  ? 'e.g., tall female model, athletic build, olive skin tone, shoulder-length brown hair, confident posture, professional runway walk'
+                  : 'مثال: موديل أنثى طويلة، بنية رياضية، بشرة زيتونية، شعر بني بطول الكتف، وضعية واثقة، مشية احترافية'}
+                className="w-full px-4 py-3 border border-blue-600/50 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-blue-950/30 text-white placeholder-gray-500 text-sm"
+                rows={3}
+              />
+
+              {modelReference && modelReference.trim() && (
+                <button
+                  onClick={clearModelReference}
+                  className="mt-2 text-xs text-red-400 hover:text-red-300 font-medium"
+                >
+                  {language === 'en' ? '✕ Clear Model Description' : '✕ مسح وصف الموديل'}
+                </button>
               )}
             </div>
 
