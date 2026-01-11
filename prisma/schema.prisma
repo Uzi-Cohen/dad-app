@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(OWNER)
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  brands Brand[]
+}
+
+model Brand {
+  id              String   @id @default(uuid())
+  userId          String
+  name            String
+  logoUrl         String?
+  watermarkPosition WatermarkPosition @default(BOTTOM_RIGHT)
+  watermarkOpacity Float   @default(0.7)
+  defaultPrompt   String   @default("High-end fashion product video of a dress, realistic fabric texture preserved, subtle cinematic camera push-in, soft studio lighting, clean background, elegant boutique look, sharp stitching, natural folds, no distortion.")
+  negativePrompt  String   @default("no extra limbs, no distorted fabric, no warped patterns, no blurry details, no watermarks")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products Product[]
+
+  @@index([userId])
+}
+
+model Product {
+  id        String        @id @default(uuid())
+  brandId   String
+  sku       String
+  name      String
+  price     Float?
+  fabric    String?
+  colors    String[]      @default([])
+  sizes     String[]      @default([])
+  status    ProductStatus @default(DRAFT)
+  metadata  Json?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  brand       Brand           @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  assets      Asset[]
+  generations GenerationJob[]
+
+  @@unique([brandId, sku])
+  @@index([brandId])
+  @@index([status])
+}
+
+model Asset {
+  id         String    @id @default(uuid())
+  productId  String
+  type       AssetType
+  role       AssetRole
+  url        String
+  filename   String
+  mimeType   String?
+  size       Int?
+  width      Int?
+  height     Int?
+  duration   Float?
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+
+  product          Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  generationInputs GenerationJob[] @relation("GenerationInputAssets")
+  generationOutput GenerationJob?  @relation("GenerationOutputAsset")
+
+  @@index([productId])
+  @@index([type])
+  @@index([role])
+}
+
+model GenerationJob {
+  id              String           @id @default(uuid())
+  productId       String
+  provider        AIProvider
+  model           String?
+  prompt          String
+  negativePrompt  String?
+  parameters      Json?
+  status          JobStatus        @default(QUEUED)
+  outputAssetId   String?          @unique
+  error           String?
+  providerJobId   String?
+  duration        Int?
+  cost            Float?
+  aspectRatio     String           @default("9:16")
+  videoDuration   Int              @default(6)
+  template        String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inputAssets  Asset[]  @relation("GenerationInputAssets")
+  outputAsset  Asset?   @relation("GenerationOutputAsset", fields: [outputAssetId], references: [id])
+
+  @@index([productId])
+  @@index([status])
+  @@index([provider])
+  @@index([createdAt])
+}
+
+enum Role {
+  ADMIN
+  OWNER
+  EDITOR
+}
+
+enum WatermarkPosition {
+  TOP_LEFT
+  TOP_RIGHT
+  BOTTOM_LEFT
+  BOTTOM_RIGHT
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  SOLD
+  ARCHIVED
+}
+
+enum AssetType {
+  IMAGE
+  VIDEO
+}
+
+enum AssetRole {
+  HERO
+  DETAIL
+  OUTPUT
+  REFERENCE
+}
+
+enum AIProvider {
+  REPLICATE
+  RUNWAY
+  FAL_PIKA
+  FAL_LUMA
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
