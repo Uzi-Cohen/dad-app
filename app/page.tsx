@@ -20,42 +20,42 @@ export default function Home() {
 
   return (
     <div>
-      <div className="mb-6">
-        <nav className="flex space-x-4">
+      <div className="mb-8">
+        <nav className="flex flex-wrap gap-3">
           <button
             onClick={() => setActiveTab('image')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg ${
               activeTab === 'image'
-                ? 'bg-purple-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white scale-105'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
             }`}
           >
-            Generate Images
+            📸 Generate Images
           </button>
           <button
             onClick={() => setActiveTab('video')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg ${
               activeTab === 'video'
-                ? 'bg-purple-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white scale-105'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
             }`}
           >
-            Generate Videos
+            🎬 Generate Videos
           </button>
           <button
             onClick={() => setActiveTab('gallery')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg ${
               activeTab === 'gallery'
-                ? 'bg-purple-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white scale-105'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200'
             }`}
           >
-            Gallery ({generatedImages.length + generatedVideos.length})
+            🖼️ Gallery ({generatedImages.length + generatedVideos.length})
           </button>
         </nav>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
         {activeTab === 'image' && <ImageGenerator onImageGenerated={addImage} />}
         {activeTab === 'video' && <VideoGenerator onVideoGenerated={addVideo} />}
         {activeTab === 'gallery' && (

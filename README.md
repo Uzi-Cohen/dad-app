@@ -18,42 +18,32 @@ A powerful web application designed specifically for fashion design businesses. 
 - Showcasing designs in motion
 - Maintaining consistent brand aesthetics
 
-## Prerequisites
+## Quick Start - It's Already Configured! 🎉
 
-- Node.js 18+ installed
-- A [Replicate](https://replicate.com) account and API token
+Everything is set up and ready to use. No configuration needed!
 
-## Setup Instructions
+### Option 1: Easy Startup (Recommended)
 
-### 1. Install Dependencies
+**On Mac/Linux:**
+1. Double-click `start.sh`
+2. Open your browser to http://localhost:3000
 
-```bash
-npm install
-```
+**On Windows:**
+1. Double-click `start.bat`
+2. Open your browser to http://localhost:3000
 
-### 2. Configure API Keys
+That's it! The first time will take a few minutes to install dependencies.
 
-1. Sign up for a [Replicate account](https://replicate.com)
-2. Get your API token from [https://replicate.com/account/api-tokens](https://replicate.com/account/api-tokens)
-3. Create a `.env` file in the project root:
+### Option 2: Manual Startup
 
-```bash
-cp .env.example .env
-```
-
-4. Add your Replicate API token to `.env`:
-
-```
-REPLICATE_API_TOKEN=your_actual_token_here
-```
-
-### 3. Run the Development Server
+If you prefer using the terminal:
 
 ```bash
+npm install  # Only needed first time
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Deployment Options
 
