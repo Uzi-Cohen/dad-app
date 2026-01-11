@@ -10,10 +10,10 @@ export default function ImageGeneratorPage() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null)
 
   const styles = [
-    { id: 'realistic', name: 'Realistic', icon: '📸', prompt: 'photorealistic, high quality, professional photography' },
-    { id: 'artistic', name: 'Artistic', icon: '🎨', prompt: 'artistic, creative, stylized illustration' },
-    { id: 'fashion', name: 'Fashion Editorial', icon: '📰', prompt: 'high fashion editorial, vogue style, professional fashion photography' },
-    { id: 'luxury', name: 'Luxury', icon: '💎', prompt: 'luxury premium fashion, elegant, sophisticated, high-end boutique' },
+    { id: 'realistic', name: 'Realistic', icon: '📸', prompt: 'photorealistic, high quality, professional photography', gradient: 'from-blue-500 to-cyan-600' },
+    { id: 'artistic', name: 'Artistic', icon: '🎨', prompt: 'artistic, creative, stylized illustration', gradient: 'from-purple-500 to-pink-600' },
+    { id: 'fashion', name: 'Fashion Editorial', icon: '📰', prompt: 'high fashion editorial, vogue style, professional fashion photography', gradient: 'from-rose-500 to-orange-600' },
+    { id: 'luxury', name: 'Luxury', icon: '💎', prompt: 'luxury premium fashion, elegant, sophisticated, high-end boutique', gradient: 'from-violet-500 to-purple-600' },
   ]
 
   const suggestions = [
@@ -63,9 +63,11 @@ export default function ImageGeneratorPage() {
     <AppLayout>
       <div className="space-y-8">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white shadow-xl">
-          <h2 className="text-3xl font-bold mb-2">AI Fashion Image Generator</h2>
-          <p className="text-blue-100 text-lg">
+        <div className="glass rounded-2xl p-8 border border-blue-500/20 shadow-2xl shadow-blue-500/10">
+          <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            AI Fashion Image Generator
+          </h2>
+          <p className="text-gray-400 text-lg">
             Describe your dream dress and watch AI bring it to life
           </p>
         </div>
@@ -73,24 +75,27 @@ export default function ImageGeneratorPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Input Section */}
           <div className="space-y-6">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Describe Your Design</h3>
+            <div className="glass rounded-2xl p-6 border border-white/10">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span className="text-2xl">✍️</span>
+                Describe Your Design
+              </h3>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Dress Description
                 </label>
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="e.g., Elegant flowing red evening gown with silk fabric and intricate beading..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/5 text-white placeholder-gray-500"
                   rows={5}
                 />
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-gray-300 mb-3">
                   Style
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -98,14 +103,16 @@ export default function ImageGeneratorPage() {
                     <button
                       key={s.id}
                       onClick={() => setStyle(s.id)}
-                      className={`p-3 rounded-lg border-2 text-left transition-all ${
+                      className={`p-3 rounded-xl border-2 text-left transition-all duration-300 ${
                         style === s.id
-                          ? 'border-purple-500 bg-purple-50'
-                          : 'border-gray-200 hover:border-purple-300'
+                          ? `border-blue-500 bg-gradient-to-br ${s.gradient} shadow-lg shadow-blue-500/50`
+                          : 'border-gray-700 hover:border-blue-500/50 bg-white/5 hover:bg-white/10'
                       }`}
                     >
                       <div className="text-2xl mb-1">{s.icon}</div>
-                      <div className="font-semibold text-gray-900 text-sm">{s.name}</div>
+                      <div className={`font-semibold text-sm ${style === s.id ? 'text-white' : 'text-gray-300'}`}>
+                        {s.name}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -114,10 +121,10 @@ export default function ImageGeneratorPage() {
               <button
                 onClick={handleGenerate}
                 disabled={!prompt.trim() || isGenerating}
-                className={`w-full py-4 rounded-lg font-bold text-white transition-all ${
+                className={`w-full py-4 rounded-lg font-bold text-white transition-all duration-300 ${
                   !prompt.trim() || isGenerating
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
+                    ? 'bg-gray-700 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105'
                 }`}
               >
                 {isGenerating ? (
@@ -132,14 +139,17 @@ export default function ImageGeneratorPage() {
             </div>
 
             {/* Suggestions */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Need Inspiration?</h3>
+            <div className="glass rounded-2xl p-6 border border-white/10">
+              <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                <span className="text-xl">💡</span>
+                Need Inspiration?
+              </h3>
               <div className="space-y-2">
                 {suggestions.map((suggestion, index) => (
                   <button
                     key={index}
                     onClick={() => setPrompt(suggestion)}
-                    className="w-full text-left px-4 py-3 text-sm text-gray-700 bg-gray-50 rounded-lg hover:bg-purple-50 hover:text-purple-700 transition-all"
+                    className="w-full text-left px-4 py-3 text-sm text-gray-300 bg-white/5 rounded-lg hover:bg-blue-500/20 hover:text-white hover:border hover:border-blue-500/50 transition-all"
                   >
                     💡 {suggestion}
                   </button>
@@ -149,14 +159,17 @@ export default function ImageGeneratorPage() {
           </div>
 
           {/* Result Section */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Generated Image</h3>
+          <div className="glass rounded-2xl p-6 border border-white/10">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-2xl">🎨</span>
+              Generated Image
+            </h3>
 
             {!generatedImage && !isGenerating && (
-              <div className="aspect-square rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+              <div className="aspect-square rounded-xl bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 flex items-center justify-center">
                 <div className="text-center">
-                  <span className="text-6xl block mb-4">🎨</span>
-                  <p className="text-gray-600 font-medium">
+                  <span className="text-6xl block mb-4 animate-float">🎨</span>
+                  <p className="text-gray-400 font-medium">
                     Your generated image will appear here
                   </p>
                 </div>
@@ -164,10 +177,10 @@ export default function ImageGeneratorPage() {
             )}
 
             {isGenerating && (
-              <div className="aspect-square rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+              <div className="aspect-square rounded-xl bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-blue-500/30 flex items-center justify-center">
                 <div className="text-center">
                   <span className="text-6xl block mb-4 animate-pulse">✨</span>
-                  <p className="text-purple-700 font-semibold">
+                  <p className="text-blue-400 font-semibold">
                     Creating your design...
                   </p>
                 </div>
@@ -175,8 +188,8 @@ export default function ImageGeneratorPage() {
             )}
 
             {generatedImage && (
-              <div className="space-y-4">
-                <div className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+              <div className="space-y-4 animate-fadeIn">
+                <div className="aspect-square rounded-xl overflow-hidden bg-gray-900 border border-white/10">
                   <img
                     src={generatedImage}
                     alt="Generated dress"
@@ -187,15 +200,15 @@ export default function ImageGeneratorPage() {
                   <a
                     href={generatedImage}
                     download="generated-dress.png"
-                    className="text-center bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-3 px-4 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all"
+                    className="text-center bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-3 px-4 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg shadow-green-500/50"
                   >
-                    Download
+                    ⬇️ Download
                   </a>
                   <button
                     onClick={() => setGeneratedImage(null)}
-                    className="bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition-all"
+                    className="bg-gray-700 text-gray-300 font-bold py-3 px-4 rounded-lg hover:bg-gray-600 hover:text-white transition-all"
                   >
-                    Generate New
+                    🔄 Generate New
                   </button>
                 </div>
               </div>
